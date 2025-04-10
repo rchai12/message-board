@@ -17,31 +17,39 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-
+  final TextEditingController _dobController = TextEditingController();
+  DateTime? _selectedDOB;
   bool _isLoading = false;
   final AuthService _authService = AuthService();
+
+  Future<void> _pickDateOfBirth() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime(2000),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDOB = picked;
+        _dobController.text = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+      });
+    }
+  }
 
   Future<void> _registerUser() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
-
       try {
         User? user = await _authService.registerUser(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
           name: _nameController.text.trim(),
+          dateOfBirth: _selectedDOB!,
         );
-
         if (user != null) {
-          // After registering the user, store additional information in Firestore
-          await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-            'name': _nameController.text.trim(),
-            'email': _emailController.text.trim(),
-            'created_at': Timestamp.now(),
-          });
-
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User registered successfully')));
           Navigator.pushReplacement(
             context,
@@ -90,6 +98,21 @@ class _RegisterPageState extends State<RegisterPage> {
                   }
                   if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+$').hasMatch(value)) {
                     return 'Please enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _dobController,
+                decoration: InputDecoration(
+                  labelText: 'Date of Birth',
+                  suffixIcon: Icon(Icons.calendar_today),
+                ),
+                readOnly: true,
+                onTap: _pickDateOfBirth,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please select your date of birth';
                   }
                   return null;
                 },

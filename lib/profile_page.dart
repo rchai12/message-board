@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'authentication.dart';
 import 'login_page.dart';
+import 'package:intl/intl.dart';
 
 class ProfilePage extends StatefulWidget {
   User user;
@@ -17,14 +18,9 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   late TextEditingController _nameController = TextEditingController();
-  late TextEditingController _emailController = TextEditingController();
-  late final TextEditingController _passwordController = TextEditingController();
-  late final TextEditingController _newEmailController = TextEditingController();
-  late final TextEditingController _newPasswordController = TextEditingController();
-
+  DateTime? _dob;
   bool _isEditingName = false;
-  bool _isEditingEmail = false;
-  bool _isEditingPassword = false;
+  bool _isEditingDob = false;
   bool _isLoading = false;
 
   @override
@@ -41,7 +37,7 @@ class _ProfilePageState extends State<ProfilePage> {
         var userData = userDoc.data()!;
         widget.user = FirebaseAuth.instance.currentUser!;
         _nameController = TextEditingController(text: userData['name']);
-        _emailController = TextEditingController(text: widget.user.email);
+        _dob = (userData['dob'] as Timestamp).toDate();
         setState(() {});
       }
     } catch (e) {
@@ -52,10 +48,6 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void dispose() {
     _nameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _newEmailController.dispose();
-    _newPasswordController.dispose();
     super.dispose();
   }
 
@@ -83,70 +75,27 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _updateEmail() async {
-    setState(() {
-      _isLoading = true;
-    });
-
+  Future<void> _updateDob(DateTime newDob) async {
+    setState(() => _isLoading = true);
     try {
-      User? updatedUser;
-      updatedUser = await widget._authService.updateEmail(
-        email: widget.user.email!,
-        currentPassword: _passwordController.text.trim(),
-        newEmail: _newEmailController.text.trim(),
-      );
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.user.uid)
+          .update({'dob': Timestamp.fromDate(newDob)});
       setState(() {
-        widget.user = updatedUser!;
-        _isEditingEmail = false;
+        _dob = newDob;
+        _isEditingDob = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Email updated successfully')),
+        SnackBar(content: Text('Date of birth updated')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Error updating DOB: $e')),
       );
-      print('Error: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-        _passwordController.clear();
-        _newEmailController.clear();
-      });
+      setState(() => _isLoading = false);
     }
-  }
-
-  Future<void> _updatePassword() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      await widget._authService.updatePassword(
-        email: widget.user.email!,
-        currentPassword: _passwordController.text.trim(),
-        newPassword: _newPasswordController.text.trim(),
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Password updated successfully')),
-      );
-      setState(() {
-        _isEditingPassword = false;
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-      print('Error: $e');
-    } finally {
-      setState(() {
-        _isLoading = false;
-        _passwordController.clear();
-        _newPasswordController.clear();
-      });
-    }
-    _passwordController.clear();
-    _newPasswordController.clear();
   }
 
   Future<void> _logout() async {
@@ -164,10 +113,26 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _pickDob() async {
+    DateTime initialDate = _dob ?? DateTime(2000);
+    DateTime firstDate = DateTime(1900);
+    DateTime lastDate = DateTime.now();
 
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+    );
+
+    if (picked != null) {
+      await _updateDob(picked);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final formattedDob = _dob != null ? DateFormat.yMMMd().format(_dob!) : 'Not set';
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
@@ -210,81 +175,20 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
             const SizedBox(height: 16),
-            _isEditingEmail
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextFormField(
-                        controller: _newEmailController,
-                        decoration: InputDecoration(labelText: 'New Email'),
-                      ),
-                      TextFormField(
-                        controller: _passwordController,
-                        decoration: InputDecoration(labelText: 'Current Password'),
-                        obscureText: true,
-                      ),
-                      SizedBox(height: 10),
-                      /*ElevatedButton(
-                        onPressed: _updateEmail,
-                        child: _isLoading
-                            ? CircularProgressIndicator()
-                            : Text('Update Email'),
-                      ),*/
-                    ],
-                  )
-                : ListTile(
-                    title: Text('Email: ${widget.user.email}'),
-                    /*trailing: IconButton(
-                      icon: Icon(Icons.edit),
-                      onPressed: () {
-                        setState(() {
-                          _isEditingEmail = true;
-                        });
-                      },
-                    ),*/
-                  ),
-            const SizedBox(height: 16),
-            _isEditingPassword
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextFormField(
-                        controller: _newPasswordController,
-                        decoration: InputDecoration(labelText: 'New Password'),
-                        obscureText: true,
-                      ),
-                      TextFormField(
-                        controller: _passwordController,
-                        decoration: InputDecoration(labelText: 'Current Password'),
-                        obscureText: true,
-                      ),
-                      SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: _updatePassword,
-                        child: _isLoading
-                            ? CircularProgressIndicator()
-                            : Text('Update Password'),
-                      ),
-                    ],
-                  )
-                : ListTile(
-                    title: Text('Password: ********'),
-                    trailing: IconButton(
-                      icon: Icon(Icons.edit),
-                      onPressed: () {
-                        setState(() {
-                          _isEditingPassword = true;
-                        });
-                      },
-                    ),
-                  ),
+            ListTile(
+              title: Text('Date of Birth: $formattedDob'),
+              trailing: IconButton(
+                icon: Icon(Icons.calendar_today),
+                onPressed: _pickDob,
+              ),
+            ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () async {
                 await widget._authService.currentUser!.reload();
                 widget.user = widget._authService.currentUser!;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Email refreshed to: ${widget.user.email}')),
+                  SnackBar(content: Text('Account Reloaded')),
                 );
               },
               child: Text('Refresh Account'),

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'message.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -24,6 +25,11 @@ class AuthService {
           'email': email,
           'date_of_birth': Timestamp.fromDate(dateOfBirth),
           'created_at': Timestamp.now(),
+        });
+
+        await _firestore.collection('users').doc(user.uid).collection('messages').add({
+          'content': '', 
+          'timestamp': Timestamp.now(),
         });
 
         await user.updateDisplayName(name);
@@ -153,6 +159,65 @@ class AuthService {
       }
     } else {
       throw Exception('No user is currently signed in.');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getUserMessages(String userId) async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> messageSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('messages')
+          .orderBy('timestamp')
+          .get();
+      List<Map<String, dynamic>> messages = messageSnapshot.docs.map((doc) {
+        return doc.data();
+      }).toList();
+      return messages;
+    } catch (e) {
+      throw Exception('Error fetching messages: $e');
+    }
+  }
+
+  Future<void> addMessageToCollection({
+    required String userId,
+    required String sender,
+    required String text,
+  }) async {
+    try {
+      Timestamp timestamp = Timestamp.now();
+      Message message = Message(
+        id: '',
+        text: text,
+        sender: sender,
+        userId: userId,
+        timestamp: timestamp,
+      );
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('messages')
+          .add(message.toMap());
+      await FirebaseFirestore.instance
+          .collection('messages')
+          .add(message.toMap());
+    } catch (e) {
+      throw Exception('Error adding message: $e');
+    }
+  }
+
+  Future<List<Message>> getMessagesFromCollection() async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance
+          .collection('messages')
+          .orderBy('timestamp', descending: true)
+          .get();
+      List<Message> messages = snapshot.docs.map((doc) {
+        return Message.fromDoc(doc);
+      }).toList();
+      return messages;
+    } catch (e) {
+      throw Exception('Error retrieving messages: $e');
     }
   }
 

@@ -6,6 +6,7 @@ class Message {
   final String sender;
   final String userId;
   final Timestamp timestamp;
+  final String messageBoardId;
 
   Message({
     required this.id,
@@ -13,6 +14,7 @@ class Message {
     required this.sender,
     required this.userId,
     required this.timestamp,
+    required this.messageBoardId,
   });
 
   factory Message.fromDoc(DocumentSnapshot doc) {
@@ -23,6 +25,7 @@ class Message {
       sender: data['sender'],
       userId: data['userId'],
       timestamp: data['timestamp'],
+      messageBoardId: data['messageBoardId'],
     );
   }
 
@@ -32,6 +35,7 @@ class Message {
       'sender': sender,
       'userId': userId,
       'timestamp': timestamp,
+      'messageBoardId': messageBoardId, 
     };
   }
 }

@@ -183,6 +183,7 @@ class AuthService {
     required String userId,
     required String sender,
     required String text,
+    required String messageBoardId,
   }) async {
     try {
       Timestamp timestamp = Timestamp.now();
@@ -192,6 +193,7 @@ class AuthService {
         sender: sender,
         userId: userId,
         timestamp: timestamp,
+        messageBoardId: messageBoardId,
       );
       await FirebaseFirestore.instance
           .collection('users')
@@ -199,17 +201,17 @@ class AuthService {
           .collection('messages')
           .add(message.toMap());
       await FirebaseFirestore.instance
-          .collection('messages')
+          .collection(messageBoardId)
           .add(message.toMap());
     } catch (e) {
       throw Exception('Error adding message: $e');
     }
   }
 
-  Future<List<Message>> getMessagesFromCollection() async {
+  Future<List<Message>> getMessagesFromCollection({required String messageBoardId}) async {
     try {
       QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance
-          .collection('messages')
+          .collection(messageBoardId)
           .orderBy('timestamp', descending: true)
           .get();
       List<Message> messages = snapshot.docs.map((doc) {

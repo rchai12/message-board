@@ -131,7 +131,7 @@ class _HomePageState extends State<HomePage> {
     _pages.add(AccountPage(user: widget.user, authService: widget.authService));
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Message Boards'),
+        title: const Text('Message Boards App'),
         actions: [
           IconButton(
             icon: Icon(Icons.logout),
@@ -171,7 +171,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
 
 class HomeTab extends StatelessWidget {
   User user;

@@ -8,7 +8,7 @@ import 'authentication.dart';
 
 class MessageBoardPage extends StatefulWidget {
   User user;
-  final authService;
+  final AuthService authService;
   final String messageBoardId;
   final String imageUrl;
   MessageBoardPage({super.key,
@@ -69,9 +69,10 @@ class _MessageBoardPageState extends State<MessageBoardPage> {
 
     if (confirm == true) {
       try {
-        await widget.authService.deleteMessageFromMessageBoard(
+        await widget.authService.deleteMessage(
           messageBoardId: widget.messageBoardId,
           messageId: messageId,
+          userId: widget.user.uid,
         );
         _loadMessages();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Message deleted.')));

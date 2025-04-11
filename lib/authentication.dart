@@ -152,7 +152,7 @@ class AuthService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getUserMessages(String userId) async {
+  Future<List<Message>> getUserMessages(String userId) async {
     try {
       QuerySnapshot<Map<String, dynamic>> messageSnapshot = await FirebaseFirestore.instance
           .collection('users')
@@ -160,8 +160,8 @@ class AuthService {
           .collection('messages')
           .orderBy('timestamp')
           .get();
-      List<Map<String, dynamic>> messages = messageSnapshot.docs.map((doc) {
-        return doc.data();
+      List<Message> messages = messageSnapshot.docs.map((doc) {
+        return Message.fromDoc(doc);
       }).toList();
       return messages;
     } catch (e) {
@@ -177,8 +177,9 @@ class AuthService {
   }) async {
     try {
       Timestamp timestamp = Timestamp.now();
+      final messageId = FirebaseFirestore.instance.collection('tmp').doc().id;
       Message message = Message(
-        id: '',
+        id: messageId,
         text: text,
         sender: sender,
         userId: userId,
@@ -189,12 +190,14 @@ class AuthService {
           .collection('users')
           .doc(userId)
           .collection('messages')
-          .add(message.toMap());
+          .doc(messageId)
+          .set(message.toMap());
       await FirebaseFirestore.instance
           .collection('messageboard')
           .doc(messageBoardId)
           .collection('messages')
-          .add(message.toMap());
+          .doc(messageId)
+          .set(message.toMap());
     } catch (e) {
       throw Exception('Error adding message: $e');
     }
@@ -274,14 +277,21 @@ class AuthService {
     }
   }
 
-  Future<void> deleteMessageFromMessageBoard({
+  Future<void> deleteMessage({
     required String messageBoardId,
     required String messageId,
+    required String userId,
   }) async {
     try {
       await FirebaseFirestore.instance
           .collection('messageboard')
           .doc(messageBoardId)
+          .collection('messages')
+          .doc(messageId)
+          .delete();
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
           .collection('messages')
           .doc(messageId)
           .delete();

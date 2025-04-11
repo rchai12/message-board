@@ -1,9 +1,9 @@
-import 'login_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'authentication.dart';
 import 'package:intl/intl.dart';
+import 'message_history.dart';
 
 class ProfilePage extends StatefulWidget {
   User user;
@@ -101,21 +101,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _logout() async {
-    try {
-      await widget.authService.logoutUser();
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
-      );
-    } catch (e) {
-      print('Error logging out: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error logging out: $e')),
-      );
-    }
-  }
-
   Future<void> _pickDob() async {
     DateTime initialDate = _dob ?? DateTime(2000);
     DateTime firstDate = DateTime(1900);
@@ -139,12 +124,6 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: _logout,
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -205,6 +184,21 @@ class _ProfilePageState extends State<ProfilePage> {
                     },
                   ),
                 ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => MessageHistoryPage(
+                      user: widget.user,
+                      authService: widget.authService,
+                    ),
+                  ),
+                );
+              },
+              child: const Text('Message History'),
+            ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () async {

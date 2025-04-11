@@ -125,13 +125,26 @@ class _MessageBoardPageState extends State<MessageBoardPage> {
           Column(
             children: [
               Expanded(
-                child: FutureBuilder<List<Message>>(
-                  future: _messagesFuture,
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('messageboard')
+                      .doc(widget.messageBoardId)
+                      .collection('messages')
+                      .orderBy('timestamp', descending: false)
+                      .snapshots(),
                   builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
-                    if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) return Center(child: Text('No messages found.'));
-                    final messages = snapshot.data!;
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    }
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return Center(child: Text('No messages found.'));
+                    }
+                    final messages = snapshot.data!.docs.map((doc) {
+                      return Message.fromDoc(doc);
+                    }).toList();
                     return ListView.builder(
                       itemCount: messages.length,
                       itemBuilder: (context, index) {

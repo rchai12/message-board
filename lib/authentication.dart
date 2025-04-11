@@ -274,5 +274,22 @@ class AuthService {
     }
   }
 
+  Future<void> deleteMessageFromMessageBoard({
+    required String messageBoardId,
+    required String messageId,
+  }) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('messageboard')
+          .doc(messageBoardId)
+          .collection('messages')
+          .doc(messageId)
+          .delete();
+      print('Message deleted from message board.');
+    } catch (e) {
+      throw Exception('Error deleting message: $e');
+    }
+  }
+
   User? get currentUser => _auth.currentUser;
 }

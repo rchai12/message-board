@@ -40,7 +40,7 @@ class _ProfilePageState extends State<ProfilePage> {
         var userData = userDoc.data()!;
         widget.user = FirebaseAuth.instance.currentUser!;
         _nameController = TextEditingController(text: userData['name']);
-        _dob = (userData['dob'] as Timestamp).toDate();
+        _dob = (userData['date_of_birth'] as Timestamp).toDate();
         setState(() {});
       }
     } catch (e) {
@@ -84,7 +84,7 @@ class _ProfilePageState extends State<ProfilePage> {
       await FirebaseFirestore.instance
           .collection('users')
           .doc(widget.user.uid)
-          .update({'dob': Timestamp.fromDate(newDob)});
+          .update({'date_of_birth': Timestamp.fromDate(newDob)});
       setState(() {
         _dob = newDob;
         _isEditingDob = false;

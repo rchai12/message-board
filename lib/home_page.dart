@@ -5,6 +5,7 @@ import 'authentication.dart';
 import 'account_page.dart';
 import 'profile_page.dart';
 import 'login_page.dart';
+import 'message_board.dart';
 
 class HomePage extends StatefulWidget {
   User user;
@@ -125,7 +126,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     _pages.clear();
-    _pages.add(HomeTab());
+    _pages.add(HomeTab(user:widget.user, authService: widget.authService));
     _pages.add(ProfilePage(user: widget.user, authService: widget.authService));
     _pages.add(AccountPage(user: widget.user, authService: widget.authService));
     return Scaffold(
@@ -173,6 +174,13 @@ class _HomePageState extends State<HomePage> {
 
 
 class HomeTab extends StatelessWidget {
+  User user;
+  final AuthService authService;
+  HomeTab({
+    super.key, 
+    required this.user, 
+    required this.authService
+  });
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Map<String, dynamic>>>(
@@ -200,7 +208,17 @@ class HomeTab extends StatelessWidget {
               String imageUrl = board['image'];
               return GestureDetector(
                 onTap: () {
-                  // placeholder for navigation to specific board
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MessageBoardPage(
+                        user: user, 
+                        authService: authService, 
+                        messageBoardId: boardId, 
+                        imageUrl: imageUrl, 
+                      ),
+                    ),
+                  );
                 },
                 child: Card(
                   elevation: 5,

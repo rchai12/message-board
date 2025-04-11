@@ -7,9 +7,13 @@ import 'package:intl/intl.dart';
 
 class ProfilePage extends StatefulWidget {
   User user;
-  final AuthService _authService = AuthService();
+  final AuthService authService;
 
-  ProfilePage({super.key, required this.user});
+  ProfilePage({
+    super.key, 
+    required this.user,
+    required this.authService,
+  });
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
@@ -31,7 +35,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _initializeUserData() async {
     try {
       DocumentSnapshot<Map<String, dynamic>>? userDoc =
-          await widget._authService.getUserData();
+          await widget.authService.getUserData();
       if (userDoc != null && userDoc.exists) {
         var userData = userDoc.data()!;
         widget.user = FirebaseAuth.instance.currentUser!;
@@ -56,7 +60,7 @@ class _ProfilePageState extends State<ProfilePage> {
     });
 
     try {
-      await widget._authService.updateName(_nameController.text.trim());
+      await widget.authService.updateName(_nameController.text.trim());
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Name updated successfully')),
       );
@@ -99,7 +103,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _logout() async {
     try {
-      await widget._authService.logoutUser();
+      await widget.authService.logoutUser();
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => LoginPage()),
@@ -204,8 +208,8 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () async {
-                await widget._authService.currentUser!.reload();
-                widget.user = widget._authService.currentUser!;
+                await widget.authService.currentUser!.reload();
+                widget.user = widget.authService.currentUser!;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Account Reloaded')),
                 );

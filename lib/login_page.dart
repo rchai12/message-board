@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'profile_page.dart';
+import 'home_page.dart';
 import 'register_page.dart';
 import 'authentication.dart';
 
@@ -37,7 +37,7 @@ class _LoginPageState extends State<LoginPage> {
           );
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => ProfilePage(user: user)),
+            MaterialPageRoute(builder: (context) => HomePage(user: user)),
           );
         }
       } catch (e) {

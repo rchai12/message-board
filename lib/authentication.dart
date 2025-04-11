@@ -220,6 +220,7 @@ class AuthService {
   Future<String> createMessageBoard({
     required String title,
     required String createdByUserId,
+    required String imageUrl,
   }) async {
     try {
       DocumentReference messageBoardRef =
@@ -228,6 +229,7 @@ class AuthService {
         'title': title,
         'created_by': createdByUserId,
         'created_at': Timestamp.now(),
+        'image' : imageUrl,
       });
       return messageBoardRef.id;
     } catch (e) {

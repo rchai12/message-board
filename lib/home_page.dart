@@ -64,6 +64,62 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _showCreateMessageBoardDialog() {
+    final _titleController = TextEditingController();
+    final _imageUrlController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Create Message Board'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _titleController,
+              decoration: InputDecoration(labelText: 'Title'),
+            ),
+            TextField(
+              controller: _imageUrlController,
+              decoration: InputDecoration(labelText: 'Image URL'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              String title = _titleController.text.trim();
+              String imageUrl = _imageUrlController.text.trim();
+              String userId = widget.user.uid;
+              if (title.isNotEmpty && imageUrl.isNotEmpty) {
+                try {
+                  await widget.authService.createMessageBoard(
+                    title: title,
+                    createdByUserId: userId,
+                    imageUrl: imageUrl,
+                  );
+                  Navigator.of(context).pop();
+                  setState(() {
+                    _messageBoards = widget.authService.getAllMessageBoards();
+                  });
+                } catch (e) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error creating board: $e')),
+                  );
+                }
+              }
+            },
+            child: Text('Create'),
+          ),
+        ],
+      ),
+    );
+  }
+
   final List<Widget> _pages = [];
 
   @override
@@ -105,7 +161,7 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: _isAdmin
           ? FloatingActionButton(
               onPressed: () {
-                // placeholder for creating message board
+                _showCreateMessageBoardDialog();
                 print('Admin Button Pressed');
               },
               child: Icon(Icons.add),

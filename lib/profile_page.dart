@@ -174,13 +174,33 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
             const SizedBox(height: 16),
-            ListTile(
-              title: Text('Date of Birth: $formattedDob'),
-              trailing: IconButton(
-                icon: Icon(Icons.calendar_today),
-                onPressed: _pickDob,
-              ),
-            ),
+            _isEditingDob
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Date of Birth: $formattedDob'),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      onPressed: _pickDob,
+                      child: _isLoading ? CircularProgressIndicator() : Text('Pick New Date'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        setState(() => _isEditingDob = false);
+                      },
+                      child: const Text('Cancel'),
+                    ),
+                  ],
+                )
+              : ListTile(
+                  title: Text('Date of Birth: $formattedDob'),
+                  trailing: IconButton(
+                    icon: Icon(Icons.edit_calendar),
+                    onPressed: () {
+                      setState(() => _isEditingDob = true);
+                    },
+                  ),
+                ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () async {

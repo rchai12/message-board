@@ -10,11 +10,13 @@ class MessageBoardPage extends StatefulWidget {
   User user;
   final AuthService authService;
   final String messageBoardId;
+  final String title;
   final String imageUrl;
   MessageBoardPage({super.key,
     required this.user,
     required this.authService,
     required this.messageBoardId,
+    required this.title,
     required this.imageUrl,
   });
 
@@ -103,7 +105,7 @@ class _MessageBoardPageState extends State<MessageBoardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Message Board'),
+        title: Text(widget.title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {

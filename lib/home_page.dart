@@ -213,7 +213,8 @@ class HomeTab extends StatelessWidget {
                       builder: (context) => MessageBoardPage(
                         user: user, 
                         authService: authService, 
-                        messageBoardId: boardId, 
+                        messageBoardId: boardId,
+                        title: title, 
                         imageUrl: imageUrl, 
                       ),
                     ),

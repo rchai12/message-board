@@ -25,11 +25,7 @@ class AuthService {
           'email': email,
           'date_of_birth': Timestamp.fromDate(dateOfBirth),
           'created_at': Timestamp.now(),
-          'role' : 'admin'
-        });
-        await _firestore.collection('users').doc(user.uid).collection('messages').add({
-          'content': '', 
-          'timestamp': Timestamp.now(),
+          'role' : 'user'
         });
         await user.updateDisplayName(name);
         await user.reload();
